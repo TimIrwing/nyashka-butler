@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	//TODO использовать базу
 	_ = mongodb.Init(context.TODO())
 	b := bot.New(getToken())
 	b.Start()

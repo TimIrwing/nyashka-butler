@@ -6,19 +6,19 @@ import (
 	"log"
 )
 
-type Wrapper struct {
+type wrapper struct {
 	_b *tgbotapi.BotAPI
 }
 
-func New(token string) *Wrapper {
+func New(token string) message.Bot {
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Fatalf("Can't get botapi from telegram: %s", err)
 	}
-	return &Wrapper{_b: bot}
+	return &wrapper{_b: bot}
 }
 
-func (bot Wrapper) Start() {
+func (bot wrapper) Start() {
 	log.Printf("Authorized on account %s", bot._b.Self.UserName)
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 60
@@ -26,11 +26,11 @@ func (bot Wrapper) Start() {
 
 	for {
 		u := <-ch
-		go bot.HandleUpdate(u)
+		go bot.handleUpdate(u)
 	}
 }
 
-func (bot Wrapper) HandleUpdate(u tgbotapi.Update) {
+func (bot wrapper) handleUpdate(u tgbotapi.Update) {
 	switch {
 	case u.Message != nil:
 		m := message.From(u.Message, bot)
@@ -38,7 +38,7 @@ func (bot Wrapper) HandleUpdate(u tgbotapi.Update) {
 	}
 }
 
-func (bot Wrapper) Send(m *message.Message) {
+func (bot wrapper) Send(m *message.Message) {
 	res := tgbotapi.NewMessage(m.ChatID, m.Text)
 	res.ReplyToMessageID = m.ReplyTo
 	_, err := bot._b.Send(res)
