@@ -7,25 +7,17 @@ import (
 	"log"
 )
 
-type Collections map[string]*mongo.Collection
-type DB struct {
-	db          *mongo.Database
-	collections Collections
-}
+const appName = "NyashkaButlerBot"
 
-func New(ctx context.Context, appName string) *DB {
+func Init(ctx context.Context) *mongo.Database {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/").SetAppName(appName)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Panicf("Can't connect to database: %s", err)
+		log.Fatalf("Can't connect to database: %s", err)
 	}
 	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.Panicf("Can't ping database: %s", err)
+		log.Fatalf("Can't ping database: %s", err)
 	}
-	db := &DB{
-		db:          client.Database(appName),
-		collections: make(Collections),
-	}
-	return db
+	return client.Database(appName)
 }
