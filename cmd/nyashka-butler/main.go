@@ -11,8 +11,7 @@ import (
 
 func main() {
 	_ = mongodb.Init(context.TODO())
-	b := bot.New(getToken())
-	b.Start()
+	bot.Start(getToken())
 }
 
 func getToken() string {
