@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"github.com/TimIrwing/nyashka-butler/internal/bot/keyboard"
 	"github.com/TimIrwing/nyashka-butler/internal/bot/message"
 	"github.com/TimIrwing/nyashka-butler/internal/types"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -49,6 +50,7 @@ func (bot wrapper) send(r *types.Response) {
 	if m := r.Message; m != nil {
 		res := tgbotapi.NewMessage(m.GetChatID(), m.GetText())
 		res.ReplyToMessageID = m.GetReplyID()
+		res.ReplyMarkup = keyboard.GetKeyboard(m.GetKeyboardPage())
 		_, err := bot.api.Send(res)
 		if err != nil {
 			log.Printf("Couldn't send message: %s", err)

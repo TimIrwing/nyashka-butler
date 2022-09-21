@@ -1,6 +1,7 @@
 package message
 
 import (
+	"github.com/TimIrwing/nyashka-butler/internal/bot/keyboard/pages"
 	"github.com/TimIrwing/nyashka-butler/internal/bot/message/commands"
 	"github.com/TimIrwing/nyashka-butler/internal/interfaces"
 	"github.com/TimIrwing/nyashka-butler/internal/types"
@@ -27,11 +28,12 @@ var EntityType = map[string]string{
 }
 
 type Message struct {
-	id        int
-	text      string
-	replyID   int
-	chatID    int64
-	cmdEntity *tgbotapi.MessageEntity
+	id           int
+	text         string
+	replyID      int
+	chatID       int64
+	keyboardPage pages.KeyboardPage
+	cmdEntity    *tgbotapi.MessageEntity
 }
 
 func (m *Message) parseEntities(list []tgbotapi.MessageEntity) {
@@ -96,10 +98,16 @@ func (m *Message) GetChatID() int64 {
 func (m *Message) GetText() string {
 	return m.text
 }
+func (m *Message) GetKeyboardPage() pages.KeyboardPage {
+	return m.keyboardPage
+}
 
 func (m *Message) SetReplyID(id int) {
 	m.replyID = id
 }
 func (m *Message) SetText(text string) {
 	m.text = text
+}
+func (m *Message) SetKeyboardPage(p pages.KeyboardPage) {
+	m.keyboardPage = p
 }
