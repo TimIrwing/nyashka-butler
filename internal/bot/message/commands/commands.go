@@ -14,7 +14,7 @@ type CommandOptions struct {
 func Trigger(cmd string, opts CommandOptions) *types.Response {
 	handler, ok := handlers[cmd]
 	if !ok {
-		log.Println("No such command")
+		log.Printf("No such command: /%s", cmd)
 		return nil
 	}
 	return handler(opts)

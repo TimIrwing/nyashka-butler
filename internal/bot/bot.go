@@ -25,10 +25,9 @@ func (bot wrapper) start() {
 	log.Printf("Authorized on account %s", bot.api.Self.UserName)
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 60
-	ch := bot.api.GetUpdatesChan(updateConfig)
+	updates := bot.api.GetUpdatesChan(updateConfig)
 
-	for {
-		u := <-ch
+	for u := range updates {
 		go bot.handleUpdate(u)
 	}
 }

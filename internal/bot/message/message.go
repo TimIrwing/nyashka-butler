@@ -33,50 +33,39 @@ type Message struct {
 	replyID      int
 	chatID       int64
 	keyboardPage pages.KeyboardPage
-	cmdEntity    *tgbotapi.MessageEntity
-}
-
-func (m *Message) parseEntities(list []tgbotapi.MessageEntity) {
-	for _, e := range list {
-		if e.Type == EntityType["command"] {
-			m.cmdEntity = &e
-		}
-	}
+	cmd          string
+	cmdArgs      []string
 }
 
 func (m *Message) handleCommand() *types.Response {
-	if m.cmdEntity == nil {
+	if len(m.cmd) == 0 {
 		return nil
 	}
-
-	opts := commands.CommandOptions{Message: m}
-	trimmed := strings.Trim(m.text[m.cmdEntity.Length:], " \n")
-	normalized := strings.ReplaceAll(trimmed, "\n", " ")
-	for _, s := range strings.Split(normalized, " ") {
-		if len(s) > 0 {
-			opts.Args = append(opts.Args, s)
-		}
-	}
-
-	cmd := m.text[m.cmdEntity.Offset+1 : m.cmdEntity.Length]
-	cmd = strings.ToLower(cmd)
-	resp := commands.Trigger(cmd, opts)
-	return resp
+	return commands.Trigger(m.cmd, commands.CommandOptions{
+		Message: m,
+		Args:    m.cmdArgs,
+	})
 }
 
 func From(m *tgbotapi.Message) Message {
-	res := Message{
-		text:   m.Text,
-		id:     m.MessageID,
-		chatID: m.Chat.ID,
+	var args []string
+	for _, cur := range strings.Split(m.CommandArguments(), " ") {
+		if len(cur) > 0 {
+			args = append(args, cur)
+		}
 	}
-	res.parseEntities(m.Entities)
-	return res
+
+	return Message{
+		text:    m.Text,
+		id:      m.MessageID,
+		chatID:  m.Chat.ID,
+		cmd:     strings.ToLower(m.Command()),
+		cmdArgs: args,
+	}
 }
 
 func (m *Message) Handle() *types.Response {
-	resp := m.handleCommand()
-	return resp
+	return m.handleCommand()
 }
 
 func (m *Message) New(text string) interfaces.Message {
