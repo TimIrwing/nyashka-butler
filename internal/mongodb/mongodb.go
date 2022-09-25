@@ -5,12 +5,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"strconv"
 )
 
 const appName = "NyashkaButlerBot"
+const localURI = "mongodb://localhost:27017/"
 
-func Init(ctx context.Context) *mongo.Database {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/").SetAppName(appName)
+type DB struct {
+	orig *mongo.Database
+}
+
+func Init(ctx context.Context) *DB {
+	clientOptions := options.Client().ApplyURI(localURI).SetAppName(appName)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatalf("Can't connect to database: %s", err)
@@ -19,5 +25,10 @@ func Init(ctx context.Context) *mongo.Database {
 	if err != nil {
 		log.Fatalf("Can't ping database: %s", err)
 	}
-	return client.Database(appName)
+	return &DB{orig: client.Database(appName)}
+}
+
+func (db DB) GetChatCollection(chatID int64) *Collection {
+	name := strconv.FormatInt(chatID, 10)
+	return &Collection{orig: db.orig.Collection(name), name: name}
 }

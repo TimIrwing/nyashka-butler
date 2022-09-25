@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	_ = mongodb.Init(context.TODO())
-	bot.Start(getToken())
+	db := mongodb.Init(context.TODO())
+	bot.Start(getToken(), db)
 }
 
 func getToken() string {

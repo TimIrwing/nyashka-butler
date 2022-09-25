@@ -3,6 +3,7 @@ package bot
 import (
 	"github.com/TimIrwing/nyashka-butler/internal/bot/keyboard"
 	"github.com/TimIrwing/nyashka-butler/internal/bot/message"
+	"github.com/TimIrwing/nyashka-butler/internal/mongodb"
 	"github.com/TimIrwing/nyashka-butler/internal/types"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
@@ -10,14 +11,15 @@ import (
 
 type wrapper struct {
 	api *tgbotapi.BotAPI
+	db  *mongodb.DB
 }
 
-func Start(token string) {
+func Start(token string, db *mongodb.DB) {
 	api, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Fatalf("Can't get botapi from telegram: %s", err)
 	}
-	bot := wrapper{api: api}
+	bot := wrapper{api: api, db: db}
 	bot.start()
 }
 
