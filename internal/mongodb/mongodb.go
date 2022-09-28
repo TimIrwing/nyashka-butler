@@ -9,14 +9,14 @@ import (
 )
 
 const appName = "NyashkaButlerBot"
-const localURI = "mongodb://localhost:27017/"
+const DefaultURI = "mongodb://localhost:27017/"
 
 type DB struct {
 	orig *mongo.Database
 }
 
-func Init(ctx context.Context) *DB {
-	clientOptions := options.Client().ApplyURI(localURI).SetAppName(appName)
+func Init(ctx context.Context, uri string) *DB {
+	clientOptions := options.Client().ApplyURI(uri).SetAppName(appName)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatalf("Can't connect to database: %s", err)

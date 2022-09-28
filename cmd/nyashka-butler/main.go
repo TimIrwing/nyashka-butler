@@ -2,22 +2,16 @@ package main
 
 import (
 	"context"
+	"flag"
 	"github.com/TimIrwing/nyashka-butler/internal/bot"
 	"github.com/TimIrwing/nyashka-butler/internal/mongodb"
-	"log"
-	"os"
-	"strings"
 )
 
 func main() {
-	db := mongodb.Init(context.TODO())
-	bot.Start(getToken(), db)
-}
+	tPtr := flag.String("token", "", "token from @BotFather")
+	uriPtr := flag.String("mongouri", mongodb.DefaultURI, "custom mongo uri, mainly used for auth")
+	flag.Parse()
 
-func getToken() string {
-	t, err := os.ReadFile("token")
-	if err != nil {
-		log.Fatalf("Error getting token from file: %s\n", err)
-	}
-	return strings.Trim(string(t), "\r\n ")
+	db := mongodb.Init(context.TODO(), *uriPtr)
+	bot.Start(*tPtr, db)
 }
