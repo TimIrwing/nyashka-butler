@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"github.com/TimIrwing/nyashka-butler/internal/bot/keyboard/pages"
+	"github.com/TimIrwing/nyashka-butler/internal/types"
 )
 
 type Message interface {
@@ -10,8 +10,13 @@ type Message interface {
 	GetReplyID() int
 	GetChatID() int64
 	GetText() string
-	GetKeyboardPage() pages.KeyboardPage
+	GetKeyboardPage() types.KeyboardPage // TODO maybe separate keyboard from message
 	SetReplyID(int)
 	SetText(string)
-	SetKeyboardPage(pages.KeyboardPage)
+	SetKeyboardPage(types.KeyboardPage)
+	GetTextInteraction() types.TextInteractionName
+}
+
+type Settings interface {
+	GetTextInteraction(types.TextInteractionName) *types.SettingsTextInteraction
 }

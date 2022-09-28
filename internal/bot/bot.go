@@ -3,7 +3,9 @@ package bot
 import (
 	"github.com/TimIrwing/nyashka-butler/internal/bot/keyboard"
 	"github.com/TimIrwing/nyashka-butler/internal/bot/message"
+	"github.com/TimIrwing/nyashka-butler/internal/interfaces"
 	"github.com/TimIrwing/nyashka-butler/internal/mongodb"
+	"github.com/TimIrwing/nyashka-butler/internal/settings"
 	"github.com/TimIrwing/nyashka-butler/internal/types"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
@@ -35,26 +37,40 @@ func (bot wrapper) start() {
 }
 
 func (bot wrapper) handleUpdate(u tgbotapi.Update) {
+	var resp []interfaces.Message
+
 	switch {
 	case u.Message != nil:
-		m := message.From(u.Message)
-		resp := m.Handle()
-		bot.send(resp)
+		s := settings.New(bot.db, u.Message.Chat.ID)
+		resp = append(resp, message.From(u.Message, bot.GetInfo()).Handle(s))
+	}
+
+	for _, r := range resp {
+		if r != nil {
+			go bot.send(r)
+		}
 	}
 }
 
-func (bot wrapper) send(r *types.Response) {
-	if r == nil {
+func (bot wrapper) send(m interfaces.Message) {
+	text := m.GetText()
+	if len(text) == 0 {
+		log.Printf("Bot is trying to send empty text")
 		return
 	}
 
-	if m := r.Message; m != nil {
-		res := tgbotapi.NewMessage(m.GetChatID(), m.GetText())
-		res.ReplyToMessageID = m.GetReplyID()
-		res.ReplyMarkup = keyboard.GetKeyboard(m.GetKeyboardPage())
-		_, err := bot.api.Send(res)
-		if err != nil {
-			log.Printf("Couldn't send message: %s", err)
-		}
+	res := tgbotapi.NewMessage(m.GetChatID(), text)
+	res.ReplyToMessageID = m.GetReplyID()
+	res.ReplyMarkup = keyboard.GetKeyboard(m.GetKeyboardPage())
+	_, err := bot.api.Send(res)
+	if err != nil {
+		log.Printf("Couldn't send message: %s", err)
+	}
+}
+
+func (bot wrapper) GetInfo() *types.BotInfo {
+	return &types.BotInfo{
+		ID:       bot.api.Self.ID,
+		UserName: bot.api.Self.UserName,
 	}
 }

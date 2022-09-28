@@ -1,43 +1,27 @@
 package message
 
 import (
-	"github.com/TimIrwing/nyashka-butler/internal/bot/keyboard/pages"
 	"github.com/TimIrwing/nyashka-butler/internal/bot/message/commands"
+	"github.com/TimIrwing/nyashka-butler/internal/bot/message/text-interaction"
 	"github.com/TimIrwing/nyashka-butler/internal/interfaces"
 	"github.com/TimIrwing/nyashka-butler/internal/types"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"strings"
 )
 
-var EntityType = map[string]string{
-	"mention":       "mention",       // (@username),
-	"text_mention":  "text_mention",  // (for users without usernames)
-	"hashtag":       "hashtag",       // (#hashtag),
-	"cashtag":       "cashtag",       // ($USD),
-	"command":       "bot_command",   // (/start@jobs_bot),
-	"url":           "url",           // (https://telegram.org),
-	"email":         "email",         // (do-not-reply@telegram.org),
-	"number":        "phone_number",  // (+1-212-555-0123),
-	"bold":          "bold",          // (bold text),
-	"italic":        "italic",        // (italic text),
-	"underline":     "underline",     // (underlined text),
-	"strikethrough": "strikethrough", // (strikethrough text),
-	"code":          "code",          // (monowidth string),
-	"pre":           "pre",           // (monowidth block),
-	"link":          "text_link",     // (for clickable text URLs),
-}
-
 type Message struct {
-	id           int
-	text         string
-	replyID      int
-	chatID       int64
-	keyboardPage pages.KeyboardPage
-	cmd          string
-	cmdArgs      []string
+	id              int
+	text            string
+	replyID         int
+	replyUserID     int64
+	chatID          int64
+	cmd             string
+	cmdArgs         []string
+	keyboardPage    types.KeyboardPage
+	textInteraction types.TextInteractionName
 }
 
-func (m *Message) handleCommand() *types.Response {
+func (m *Message) handleCommand() interfaces.Message { // TODO move to commands package
 	if len(m.cmd) == 0 {
 		return nil
 	}
@@ -47,25 +31,21 @@ func (m *Message) handleCommand() *types.Response {
 	})
 }
 
-func From(m *tgbotapi.Message) Message {
-	var args []string
-	for _, cur := range strings.Split(m.CommandArguments(), " ") {
+func (m *Message) parseCmdArgs(args string) {
+	var res []string
+	for _, cur := range strings.Split(args, " ") {
 		if len(cur) > 0 {
-			args = append(args, cur)
+			res = append(res, cur)
 		}
 	}
-
-	return Message{
-		text:    m.Text,
-		id:      m.MessageID,
-		chatID:  m.Chat.ID,
-		cmd:     strings.ToLower(m.Command()),
-		cmdArgs: args,
-	}
+	m.cmdArgs = res
 }
 
-func (m *Message) Handle() *types.Response {
-	return m.handleCommand()
+func (m *Message) parseReply(replyMsg *tgbotapi.Message) {
+	if replyMsg == nil {
+		return
+	}
+	m.replyID = replyMsg.MessageID
 }
 
 func (m *Message) New(text string) interfaces.Message {
@@ -73,6 +53,27 @@ func (m *Message) New(text string) interfaces.Message {
 		text:   text,
 		chatID: m.chatID,
 	}
+}
+
+func From(m *tgbotapi.Message, botInfo *types.BotInfo) *Message {
+	res := &Message{
+		id:              m.MessageID,
+		text:            m.Text,
+		chatID:          m.Chat.ID,
+		cmd:             strings.ToLower(m.Command()),
+		textInteraction: text_interaction.GetName(m, botInfo),
+	}
+	res.parseReply(m.ReplyToMessage)
+	res.parseCmdArgs(m.CommandArguments())
+	return res
+}
+
+func (m *Message) Handle(s interfaces.Settings) interfaces.Message {
+	resp := m.handleCommand()
+	if resp == nil {
+		resp = text_interaction.Handle(m, s)
+	}
+	return resp
 }
 
 func (m *Message) GetID() int {
@@ -87,8 +88,11 @@ func (m *Message) GetChatID() int64 {
 func (m *Message) GetText() string {
 	return m.text
 }
-func (m *Message) GetKeyboardPage() pages.KeyboardPage {
+func (m *Message) GetKeyboardPage() types.KeyboardPage {
 	return m.keyboardPage
+}
+func (m *Message) GetTextInteraction() types.TextInteractionName {
+	return m.textInteraction
 }
 
 func (m *Message) SetReplyID(id int) {
@@ -97,6 +101,6 @@ func (m *Message) SetReplyID(id int) {
 func (m *Message) SetText(text string) {
 	m.text = text
 }
-func (m *Message) SetKeyboardPage(p pages.KeyboardPage) {
+func (m *Message) SetKeyboardPage(p types.KeyboardPage) {
 	m.keyboardPage = p
 }

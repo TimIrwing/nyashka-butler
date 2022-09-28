@@ -2,7 +2,6 @@ package commands
 
 import (
 	"github.com/TimIrwing/nyashka-butler/internal/interfaces"
-	"github.com/TimIrwing/nyashka-butler/internal/types"
 	"log"
 )
 
@@ -11,7 +10,7 @@ type CommandOptions struct {
 	Message interfaces.Message
 }
 
-func Trigger(cmd string, opts CommandOptions) *types.Response {
+func Trigger(cmd string, opts CommandOptions) interfaces.Message {
 	handler, ok := handlers[cmd]
 	if !ok {
 		log.Printf("No such command: /%s", cmd)

@@ -1,7 +1,7 @@
 package pages
 
-type KeyboardPage string
+import "github.com/TimIrwing/nyashka-butler/internal/types"
 
 const (
-	Config KeyboardPage = "config"
+	Config types.KeyboardPage = "config"
 )

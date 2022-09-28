@@ -3,6 +3,7 @@ package settings
 import (
 	"errors"
 	"github.com/TimIrwing/nyashka-butler/internal/mongodb"
+	"github.com/TimIrwing/nyashka-butler/internal/types"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -16,27 +17,27 @@ func New(db *mongodb.DB, chatID int64) *Settings {
 	return &Settings{col: db.GetChatCollection(chatID)}
 }
 
-func (s Settings) GetGeneral() *General {
-	p := &General{}
+func (s Settings) GetGeneral() *types.SettingsGeneral {
+	p := &types.SettingsGeneral{}
 	get := s.col.Get(bson.D{{"isgeneral", true}})
-	typed, ok := get.Decode(p).(*General)
+	typed, ok := get.Decode(p).(*types.SettingsGeneral)
 	if ok {
 		return typed
 	}
-	return &General{}
+	return &types.SettingsGeneral{}
 }
 
-func (s Settings) GetTextInteraction(name string) *TextInteraction {
-	p := &TextInteraction{}
-	get := s.col.Get(bson.D{{"TextInteractionName", name}})
-	typed, ok := get.Decode(p).(*TextInteraction)
+func (s Settings) GetTextInteraction(name types.TextInteractionName) *types.SettingsTextInteraction {
+	p := &types.SettingsTextInteraction{}
+	get := s.col.Get(bson.D{{"textinteractionname", name}})
+	typed, ok := get.Decode(p).(*types.SettingsTextInteraction)
 	if ok {
 		return typed
 	}
-	return &TextInteraction{}
+	return &types.SettingsTextInteraction{}
 }
 
-func (s Settings) SetGeneral(input *General) error {
+func (s Settings) SetGeneral(input *types.SettingsGeneral) error {
 	if input == nil {
 		return ErrIsNil
 	}
@@ -44,7 +45,7 @@ func (s Settings) SetGeneral(input *General) error {
 	return s.col.Add(input)
 }
 
-func (s Settings) SetTextInteraction(input *TextInteraction) error {
+func (s Settings) SetTextInteraction(input *types.SettingsTextInteraction) error {
 	if input == nil {
 		return ErrIsNil
 	}
