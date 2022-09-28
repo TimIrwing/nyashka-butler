@@ -6,12 +6,14 @@ import (
 	"github.com/TimIrwing/nyashka-butler/internal/interfaces"
 	"github.com/TimIrwing/nyashka-butler/internal/types"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"log"
 	"strings"
 )
 
 type Message struct {
 	id              int
 	text            string
+	user            types.User
 	replyID         int
 	replyUserID     int64
 	chatID          int64
@@ -59,6 +61,7 @@ func From(m *tgbotapi.Message, botInfo *types.BotInfo) *Message {
 	res := &Message{
 		id:              m.MessageID,
 		text:            m.Text,
+		user:            types.User{ID: m.From.ID, UserName: m.From.UserName},
 		chatID:          m.Chat.ID,
 		cmd:             strings.ToLower(m.Command()),
 		textInteraction: text_interaction.GetName(m, botInfo),
@@ -66,6 +69,10 @@ func From(m *tgbotapi.Message, botInfo *types.BotInfo) *Message {
 	res.parseReply(m.ReplyToMessage)
 	res.parseCmdArgs(m.CommandArguments())
 	return res
+}
+
+func (m *Message) Log() {
+	log.Printf("[Message] ID:%d chatID:%d | userID:%d | user:@%s\n%s", m.id, m.chatID, m.user.ID, m.user.UserName, m.text)
 }
 
 func (m *Message) Handle(s interfaces.Settings) interfaces.Message {

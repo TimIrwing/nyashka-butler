@@ -41,8 +41,10 @@ func (bot wrapper) handleUpdate(u tgbotapi.Update) {
 
 	switch {
 	case u.Message != nil:
+		m := message.From(u.Message, bot.GetInfo())
+		m.Log()
 		s := settings.New(bot.db, u.Message.Chat.ID)
-		resp = append(resp, message.From(u.Message, bot.GetInfo()).Handle(s))
+		resp = append(resp, m.Handle(s))
 	}
 
 	for _, r := range resp {
