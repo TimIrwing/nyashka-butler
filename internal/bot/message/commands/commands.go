@@ -10,7 +10,7 @@ type CommandOptions struct {
 	Message interfaces.Message
 }
 
-func Trigger(cmd string, opts CommandOptions) interfaces.Message {
+func Handle(cmd string, opts CommandOptions) interfaces.Message {
 	handler, ok := handlers[cmd]
 	if !ok {
 		log.Printf("No such command: /%s", cmd)

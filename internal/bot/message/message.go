@@ -23,16 +23,6 @@ type Message struct {
 	textInteraction types.TextInteractionName
 }
 
-func (m *Message) handleCommand() interfaces.Message { // TODO move to commands package
-	if len(m.cmd) == 0 {
-		return nil
-	}
-	return commands.Trigger(m.cmd, commands.CommandOptions{
-		Message: m,
-		Args:    m.cmdArgs,
-	})
-}
-
 func (m *Message) parseCmdArgs(args string) {
 	var res []string
 	for _, cur := range strings.Split(args, " ") {
@@ -76,10 +66,18 @@ func (m *Message) Log() {
 }
 
 func (m *Message) Handle(s interfaces.Settings) interfaces.Message {
-	resp := m.handleCommand()
-	if resp == nil {
+	var resp interfaces.Message
+
+	switch {
+	case len(m.cmd) > 0:
+		resp = commands.Handle(m.cmd, commands.CommandOptions{
+			Message: m,
+			Args:    m.cmdArgs,
+		})
+	default:
 		resp = text_interaction.Handle(m, s)
 	}
+
 	return resp
 }
 
